@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7A00"/>
+      <stop offset="100%" stop-color="#E56A00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond arrondi orange -->
+  <rect x="0" y="0" width="512" height="512" rx="110" fill="url(#bgGrad)"/>
+
+  <!-- Anneau blanc -->
+  <circle cx="256" cy="256" r="168" fill="none" stroke="#FFFFFF" stroke-width="14"/>
+
+  <!-- Anneau vert (accent signal) -->
+  <circle cx="256" cy="256" r="168" fill="none" stroke="#2E9E4F" stroke-width="14"
+          stroke-dasharray="180 900" stroke-linecap="round" transform="rotate(-90 256 256)"/>
+
+  <!-- Triangle Play blanc -->
+  <path d="M215 175 L215 337 L360 256 Z" fill="#FFFFFF"/>
+
+  <!-- Petit accent vert dans le triangle -->
+  <path d="M215 175 L215 337 L360 256 Z" fill="none" stroke="#2E9E4F" stroke-width="6" stroke-linejoin="round"/>
+
+  <!-- Texte SOLPLAY -->
+  <text x="256" y="452" font-family="Arial, Helvetica, sans-serif" font-size="54"
+        font-weight="bold" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">SOLPLAY</text>
+</svg>
