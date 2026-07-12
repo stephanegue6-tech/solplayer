@@ -1,0 +1,37 @@
+name: Build SolPlay APK
+
+# Se déclenche automatiquement à chaque envoi de code sur la branche main,
+# et peut aussi être lancé manuellement depuis l'onglet "Actions" de GitHub.
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Autoriser l'exécution de gradlew
+        run: chmod +x ./gradlew || true
+
+      - name: Installer Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compiler l'APK (debug)
+        run: gradle assembleDebug
+
+      - name: Mettre l'APK à disposition en téléchargement
+        uses: actions/upload-artifact@v4
+        with:
+          name: SolPlay-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
