@@ -19,8 +19,7 @@ class ChannelsActivity : AppCompatActivity() {
         binding = ActivityChannelsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        @Suppress("UNCHECKED_CAST")
-        val channels = intent.getSerializableExtra(EXTRA_CHANNELS) as? ArrayList<Channel> ?: arrayListOf()
+       val channels = channelRepository.channels
 
         binding.recyclerChannels.layoutManager = LinearLayoutManager(this)
         binding.recyclerChannels.adapter = ChannelAdapter(channels) { channel ->
