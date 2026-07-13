@@ -23,7 +23,10 @@
 
         <activity android:name=".LicenseActivity" android:exported="false" />
         <activity android:name=".PlaylistActivity" android:exported="false" />
+        <activity android:name=".PlaylistsListActivity" android:exported="false" />
+        <activity android:name=".RedeemCodeActivity" android:exported="false" />
         <activity android:name=".ChannelsActivity" android:exported="false" />
+       
         <activity
             android:name=".PlayerActivity"
             android:exported="false"
