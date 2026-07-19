@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "CrimTrack",
+    "slug": "crimtrack-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#10141a",
+    "splash": {
+      "backgroundColor": "#10141a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.crimtrack.mobile"
+    },
+    "android": {
+      "package": "org.crimtrack.mobile",
+      "permissions": ["ACCESS_FINE_LOCATION", "CAMERA"]
+    },
+    "plugins": ["expo-secure-store"]
+  }
+}

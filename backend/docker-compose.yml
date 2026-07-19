@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: crimtrack
+      POSTGRES_PASSWORD: crimtrack
+      POSTGRES_DB: crimtrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - crimtrack_db_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+psycopg2://crimtrack:crimtrack@db:5432/crimtrack
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "8000:8000"
+
+volumes:
+  crimtrack_db_data:

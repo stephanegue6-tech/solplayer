@@ -1,88 +1,84 @@
-# SolPlay Desktop (Windows 10) — v1 (base fonctionnelle)
+# CrimTrack — monorepo
 
-Port desktop de l'app Android SolPlay, en **Kotlin + Compose Desktop**, réutilisant
-directement la logique métier existante (parsing M3U/Xtream, licence,
-cache, synchronisation admin Firebase) plutôt que de tout réécrire.
-
-## ✅ Ce qui est fait et fonctionnel dans cette v1
-
-- **Fichiers 100% réutilisés tels quels** (aucune ligne modifiée) :
-  `M3uParser.kt`, `Bouquet.kt`, `ContentType.kt`, `EpgGridUtils.kt`,
-  `SavedPlaylist.kt`, `channelRepository.kt`, `CodeRedeemer.kt`.
-- **Fichiers réutilisés avec adaptation minimale** (même logique, juste le
-  "backend" Android→desktop changé via des petites couches de compatibilité) :
-  `TrialManager.kt`, `DeviceKeyManager.kt`, `DevicePlaylistSync.kt`,
-  `ChannelCacheStore.kt`, `XtreamApiClient.kt`, `TmdbClient.kt`,
-  `UpdateChecker.kt`, `PlaylistStore.kt`.
-- **Écrans desktop (Compose)** : démarrage, activation/licence (avec ta clé
-  appareil + vérification auto toutes les 10s, comme sur Android), connexion
-  (code / M3U / Xtream, + connexion automatique si l'admin a assigné un
-  compte), liste des chaînes avec recherche/filtre, lecture vidéo (VLC).
-- **Se connecte à la même base Firebase** que ton app Android et ton
-  `admin_panel.html` — un client activé depuis l'admin fonctionne pour les
-  deux plateformes sans rien reconfigurer.
-
-## ⚠️ Ce qui N'EST PAS encore porté (honnêteté sur le périmètre)
-
-L'app Android v18 est allée plus loin que ce qu'une seule session peut porter
-intégralement. Pas encore fait :
-- **Grille EPG** (programme TV détaillé par créneaux horaires)
-- **Fiches TMDB** (affiches/synopsis films-séries) — `TmdbClient.kt` est
-  porté et prêt à l'emploi, mais aucun écran ne l'utilise encore
-- **Bouquets** (regroupements personnalisés de chaînes)
-- **Rappel automatique du temps restant** (notification périodique — sur
-  Windows, ça se ferait via la zone de notification système/system tray)
-- **Écran "À propos"** et paramètres avancés
-
-Je peux les ajouter dans une prochaine session, un par un.
-
-## 🔧 Différences techniques assumées (Android → Windows)
-
-| Sur Android | Sur ce port desktop |
-|---|---|
-| ExoPlayer/Media3 (lecture vidéo) | VLC via vlcj — **nécessite que VLC soit installé sur le PC Windows** ([gratuit ici](https://www.videolan.org/vlc/download-windows.html)) |
-| SharedPreferences | Fichiers JSON dans `%APPDATA%\SolPlay\prefs\` |
-| EncryptedSharedPreferences (Android Keystore) | Stockage **non chiffré** au repos (même niveau que la plupart des lecteurs IPTV desktop). Pour un vrai chiffrement, prochaine étape possible : Windows DPAPI via JNA |
-| SDK Firebase Android (websocket) | API REST Firebase (HTTP), fonctionnellement équivalente pour les lectures utilisées ici |
-
-## 🏗️ Comment compiler en .exe sur ton PC Windows 10
-
-1. Installe [un JDK 17](https://adoptium.net/) (Temurin 17 recommandé).
-2. Installe [VLC Media Player](https://www.videolan.org/vlc/download-windows.html) (nécessaire pour la lecture vidéo).
-3. Ouvre un terminal (PowerShell) dans ce dossier `solplay-desktop`.
-4. Génère l'exécutable/installeur :
-   ```
-   .\gradlew.bat packageMsi
-   ```
-   (Gradle télécharge tout automatiquement au premier lancement — connexion
-   internet nécessaire cette première fois.)
-5. Le fichier `.msi` d'installation se trouve ensuite dans :
-   `build/compose/binaries/main/msi/`
-6. Pour juste tester sans packager, tu peux aussi lancer directement :
-   ```
-   .\gradlew.bat run
-   ```
-
-**Note** : je n'ai pas pu compiler/tester ce projet moi-même (pas d'accès à
-Windows ni à Gradle en ligne dans mon environnement) — il te faudra faire ce
-premier build sur ta machine pour repérer d'éventuelles erreurs de
-compilation restantes, et je pourrai les corriger avec toi à partir des
-messages d'erreur exacts.
-
-## 📁 Structure
+## Structure
 
 ```
-solplay-desktop/
-├── build.gradle.kts          ← config Compose Desktop, VLC, packaging Windows
-├── settings.gradle.kts
-└── src/main/kotlin/
-    ├── com/solplay/iptv/      ← logique métier réutilisée depuis l'app Android
-    └── com/solplay/desktop/
-        ├── Main.kt            ← point d'entrée, navigation entre écrans
-        ├── core/               ← couches de compatibilité Android→desktop
-        │   ├── ContextShim.kt      (Context/SharedPreferences)
-        │   ├── FirebaseShim.kt     (SDK Firebase Android → REST)
-        │   ├── Log.kt              (android.util.Log + Base64)
-        │   └── UriShim.kt          (android.net.Uri)
-        └── ui/                 ← écrans Compose Desktop
+backend/    API FastAPI (Python)
+frontend/   Interface web statique (HTML/JS, sans build)
+mobile/     Scaffold app mobile (Expo / React Native)
+desktop/    Enveloppe Electron -> installeur Windows
+.github/workflows/build-windows-desktop.yml   Compilation automatique
 ```
+
+## Obtenir un installeur Windows sans rien installer vous-même
+
+C'est le but du workflow `.github/workflows/build-windows-desktop.yml`.
+Il tourne sur un serveur GitHub (runner `windows-latest`), pas sur votre
+PC : GitHub compile, vous téléchargez juste le résultat.
+
+### Étapes
+
+1. **Poussez ce contenu sur votre repo GitHub**, en respectant la
+   structure ci-dessus (`backend/`, `frontend/`, `desktop/`,
+   `.github/workflows/...`). Si votre repo a déjà une autre organisation
+   (ex. deux repos séparés backend/frontend), soit vous les fusionnez
+   dans un seul repo, soit vous adaptez les chemins `working-directory`
+   dans le fichier de workflow.
+
+2. **Lancez le build** :
+   - Manuellement : onglet **Actions** du repo GitHub → sélectionner
+     *Build Windows Desktop App* → bouton **Run workflow**.
+   - Ou automatiquement en créant un tag de version :
+     ```bash
+     git tag v0.1.0
+     git push origin v0.1.0
+     ```
+
+3. **Attendez la fin du build** (5–10 minutes : installation Python,
+   compilation PyInstaller, installation Node, packaging Electron).
+
+4. **Récupérez l'installeur** :
+   - Sur un lancement manuel : onglet **Actions** → le run terminé →
+     section **Artifacts** en bas de page → télécharger
+     `CrimTrack-installer-windows` (fichier `.zip` contenant le `.exe`).
+   - Sur un lancement par tag : le `.exe` apparaît directement dans
+     l'onglet **Releases** du repo.
+
+5. **Sur votre PC Windows** : téléchargez le `.exe`, double-cliquez,
+   suivez l'installeur (NSIS — comme n'importe quel logiciel Windows
+   classique). Windows SmartScreen affichera probablement un avertissement
+   "éditeur inconnu" la première fois (l'app n'est pas signée
+   numériquement) — cliquez sur *Informations complémentaires* puis
+   *Exécuter quand même*.
+
+Une fois installé, **CrimTrack apparaît dans le menu Démarrer** comme
+n'importe quelle application. Aucun terminal, aucun Python, aucun Node
+requis sur votre machine : tout est à l'intérieur de l'exécutable.
+
+## Ce que fait l'app une fois lancée
+
+- Elle démarre un mini-serveur backend en arrière-plan (invisible),
+  crée automatiquement un jeu de données de démonstration au premier
+  lancement, et ouvre une fenêtre avec l'interface CrimTrack.
+- Les données (base SQLite, pièces jointes, session) sont stockées dans
+  `%APPDATA%\CrimTrack`, pas dans le dossier d'installation — donc
+  persistantes entre les mises à jour, et propres à réinitialiser en
+  supprimant simplement ce dossier.
+
+## Limites connues de ce build desktop
+
+- **ANPR (Module 4)** : la lecture de plaques dépend d'OpenCV/Tesseract,
+  packagés dans l'exe. Si le module se révèle instable en usage réel,
+  c'est le premier point à vérifier (taille de l'exe, temps de démarrage).
+- **PostGIS** : le build desktop utilise SQLite (pas PostgreSQL/PostGIS),
+  donc le calcul des hotspots passe par le mode de repli Python
+  (`_hotspots_python` dans `backend/app/routers/incidents.py`) plutôt que
+  les requêtes géospatiales natives — suffisant pour un usage mono-poste,
+  pas pour un vrai déploiement multi-unités.
+- **Signature de code** : l'installeur n'est pas signé (ça coûte un
+  certificat payant). SmartScreen avertira à chaque nouvelle version tant
+  que ce n'est pas fait.
+- **Mono-utilisateur en pratique** : rien n'empêche plusieurs comptes de
+  se connecter, mais la base SQLite locale n'est pas faite pour un accès
+  concurrent depuis plusieurs postes — c'est un outil de démo/poste
+  individuel, pas un serveur d'unité.
